@@ -29,7 +29,9 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGO_CONNECTIONSTRING")))
-	config.KeyProvider = mongo_providers.NewKeyProvider(client.Database(os.Getenv("MONGO_DATABASE")).Collection(os.Getenv("MONGO_KEYS_COLLECTION")))
+	config.KeyProvider = mongo_providers.NewKeyProvider(client.
+		Database(os.Getenv("MONGO_DATABASE")).
+		Collection(os.Getenv("MONGO_KEYS_COLLECTION")))
 
 	err = config.RunServer()
 	if err != nil {

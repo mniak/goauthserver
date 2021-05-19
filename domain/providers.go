@@ -1,7 +1,10 @@
 package domain
 
-type Key struct{}
+import (
+	"context"
+	"crypto/x509"
+)
 
 type KeyProvider interface {
-	GetKeys() ([]Key, error)
+	Keys(ctx context.Context) ([]*x509.Certificate, error)
 }
