@@ -1,24 +1,15 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"os"
+	"time"
 
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
+	"github.com/mniak/goauthserver/mongo_providers"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-type ServerConfig struct {
-	Host    string
-	Port    int
-	BaseURL string
-
-	DevMode bool
-
-	Router *gin.Engine
-	Logger *zap.Logger
-}
 
 const (
 	DefaultHost = "0.0.0.0"
@@ -32,51 +23,16 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	config.Router.GET("/.well-known/openid-configuration", config.discoveryEndpoint())
-	config.Router.GET("/auth/keys", config.jwksEndpoint())
+	config.Router.GET("/.well-known/openid-configuration", config.Discovery())
+	config.Router.GET("/auth/keys", config.JWKS())
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(os.Getenv("MONGO_CONNECTIONSTRING")))
+	config.KeyProvider = mongo_providers.NewKeyProvider(client.Database(os.Getenv("MONGO_DATABASE")).Collection(os.Getenv("MONGO_KEYS_COLLECTION")))
 
 	err = config.RunServer()
 	if err != nil {
 		os.Exit(-1)
-	}
-}
-
-func (s *ServerConfig) discoveryEndpoint() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"issuer": s.BaseURL,
-
-			"response_types_supported":              []string{"code"},
-			"subject_types_supported":               []string{"public"},
-			"id_token_signing_alg_values_supported": []string{"RS256"},
-
-			"authorization_endpoint": fmt.Sprintf("%s/auth/authorization", s.BaseURL),
-			"token_endpoint":         fmt.Sprintf("%s/auth/token", s.BaseURL),
-			// "userinfo_endpoint":      "bbbbbbbbbbbbb",
-
-			"jwks_uri": fmt.Sprintf("%s/auth/keys", s.BaseURL),
-
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-			// "aaaaaaaaaa":             "bbbbbbbbbbbbb",
-		})
-	}
-}
-
-func (s *ServerConfig) jwksEndpoint() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"keys": []gin.H{},
-		})
 	}
 }

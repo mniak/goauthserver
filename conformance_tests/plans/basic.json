@@ -1,0 +1,12 @@
+{
+    "alias": "basic",
+    "server": {
+        "discoveryUrl": "http://host.docker.internal:5000/.well-known/openid-configuration"
+    },
+    "client": {
+        "client_name": "Client 01"
+    },
+    "client2": {
+        "client_name": "Client 02"
+    }
+}

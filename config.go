@@ -7,8 +7,22 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mniak/goauthserver/domain"
 	"go.uber.org/zap"
 )
+
+type ServerConfig struct {
+	Host    string
+	Port    int
+	BaseURL string
+
+	DevMode bool
+
+	Router *gin.Engine
+	Logger *zap.Logger
+
+	KeyProvider domain.KeyProvider
+}
 
 func NewServerConfig() (*ServerConfig, error) {
 	var port int
