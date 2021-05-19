@@ -34,6 +34,10 @@ func (s *ServerConfig) JWKS() gin.HandlerFunc {
 }
 
 func jwk(cert *x509.Certificate) (map[string]interface{}, error) {
+	thumbprint, err := acme.JWKThumbprint(cert.PublicKey)
+	if err != nil {
+		return nil, err
+	}
 	switch pub := cert.PublicKey.(type) {
 	case *rsa.PublicKey:
 		n := pub.N
@@ -43,6 +47,7 @@ func jwk(cert *x509.Certificate) (map[string]interface{}, error) {
 			"kty": "RSA",
 			"e":   base64.RawURLEncoding.EncodeToString(e.Bytes()),
 			"n":   base64.RawURLEncoding.EncodeToString(n.Bytes()),
+			"kid": thumbprint,
 		}, nil
 	case *ecdsa.PublicKey:
 		p := pub.Curve.Params()
@@ -63,6 +68,7 @@ func jwk(cert *x509.Certificate) (map[string]interface{}, error) {
 			"kty": "EC",
 			"x":   base64.RawURLEncoding.EncodeToString(x),
 			"y":   base64.RawURLEncoding.EncodeToString(y),
+			"kid": thumbprint,
 		}, nil
 	default:
 		return nil, acme.ErrUnsupportedKey
