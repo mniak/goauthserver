@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
 
@@ -17,8 +19,8 @@ type Server struct {
 }
 
 const (
-	DefaultHost = "localhost"
-	DefaultPort = 8080
+	DefaultHost = "0.0.0.0"
+	DefaultPort = 5000
 )
 
 func NewServer() (*Server, error) {
@@ -53,16 +55,30 @@ func NewServer() (*Server, error) {
 	}, nil
 }
 
+func (s *Server) Run() error {
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", s.Host, s.Port), s.Router)
+	if err != nil {
+		s.Logger.Fatal("could not start server", zap.Any("error", err))
+	}
+	return err
+}
+
 func main() {
 	server, err := NewServer()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	server.Router.GET("/.well-known/openid-configuration", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"issuer": "http://localhost.google.com",
-		})
+	server.Router.GET("/.well-known/openid-configuration", discoveryEndpoint)
+
+	err = server.Run()
+	if err != nil {
+		os.Exit(-1)
+	}
+}
+
+func discoveryEndpoint(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"issuer": "http://localhost.google.com",
 	})
-	server.Router.Run() // listen and serve on 0.0.0.0:8080
 }
