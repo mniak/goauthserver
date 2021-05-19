@@ -18,3 +18,4 @@
 __debug_bin
 goauthserver
 goauthserver.exe
+.env

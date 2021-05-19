@@ -11,8 +11,10 @@
             "mode": "auto",
             "program": "${workspaceFolder}",
             "env": {
-                "EXTERNAL_URL": "http://host.docker.internal:5000"
-            }
+                "DEV_MODE": "true",
+                "EXTERNAL_URL": "http://host.docker.internal:5000",
+            },
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

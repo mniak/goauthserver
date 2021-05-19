@@ -75,6 +75,8 @@ func (s *ServerConfig) discoveryEndpoint() gin.HandlerFunc {
 
 func (s *ServerConfig) jwksEndpoint() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.JSON(200, gin.H{})
+		c.JSON(200, gin.H{
+			"keys": []gin.H{},
+		})
 	}
 }
